@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GarnetTouch</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  html, body { margin: 0; padding: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+  /* Layout concept: an instrument / spec-sheet panel — mono labels, a signal-path readout,
+     garnet accent (the phone's codename) on a warm near-black, light theme mirrored. */
+  :root {
+    --bg: #f3f1ef;
+    --surface: #ffffff;
+    --surface-2: #ece8e5;
+    --fg: #1b1618;
+    --muted: #6d645f;
+    --line: #e0dad6;
+    --accent: #8e1b2e;        /* garnet */
+    --accent-soft: #f1dcdf;
+    --good: #2f7d4f;
+    --work: #a8631a;          /* amber: in progress */
+    --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+    --body: "IBM Plex Sans", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141010;
+      --surface: #1e1819;
+      --surface-2: #26201f;
+      --fg: #f1ebe9;
+      --muted: #a79d98;
+      --line: #322a29;
+      --accent: #e5495f;
+      --accent-soft: #3a1b20;
+      --good: #58b57f;
+      --work: #e0973f;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141010;
+    --surface: #1e1819;
+    --surface-2: #26201f;
+    --fg: #f1ebe9;
+    --muted: #a79d98;
+    --line: #322a29;
+    --accent: #e5495f;
+    --accent-soft: #3a1b20;
+    --good: #58b57f;
+    --work: #e0973f;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  .wrap {
+    max-width: 1040px;
+    margin-inline: auto;
+    padding-left: max(20px, env(safe-area-inset-left, 0px));
+    padding-right: max(20px, env(safe-area-inset-right, 0px));
+  }
+  h1, h2, h3 { font-family: var(--display); text-wrap: balance; letter-spacing: -0.01em; margin: 0; }
+  a { color: inherit; }
+  .mono { font-family: var(--mono); }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 0.9rem;
+  }
+
+  /* ---- header ---- */
+  header {
+    position: sticky; top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 21; }
+  .bar { display: flex; align-items: center; gap: 1rem; min-height: 56px; }
+  .brand { font-family: var(--display); font-weight: 900; font-size: 1.05rem; letter-spacing: -0.02em; display: flex; align-items: center; gap: 0.55rem; }
+  .brand .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); flex: none; }
+  .bar nav { margin-left: auto; display: flex; gap: 1.3rem; align-items: center; }
+  .bar nav a { font-family: var(--mono); font-size: 0.8rem; text-decoration: none; color: var(--muted); }
+  .bar nav a:hover { color: var(--fg); }
+  .toggle { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 8px; width: 34px; height: 34px; cursor: pointer; display: grid; place-items: center; flex: none; }
+  .toggle:hover { color: var(--fg); border-color: var(--accent); }
+  @media (max-width: 620px) { .bar nav a.navlink { display: none; } }
+
+  /* ---- hero ---- */
+  .hero { position: relative; padding-block: 4.5rem 3rem; overflow: hidden; }
+  .hero-grid {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0.5;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 46px 46px;
+    -webkit-mask-image: radial-gradient(120% 80% at 85% 0%, #000 0%, transparent 62%);
+    mask-image: radial-gradient(120% 80% at 85% 0%, #000 0%, transparent 62%);
+  }
+  .target { position: absolute; top: 8%; right: 4%; width: 190px; height: 190px; pointer-events: none; opacity: 0.85; }
+  @media (max-width: 760px) { .target { display: none; } }
+  .hero-inner { position: relative; }
+  .hero h1 { font-weight: 900; font-size: clamp(2.9rem, 10vw, 6rem); line-height: 0.94; letter-spacing: -0.03em; }
+  .hero h1 .g { color: var(--accent); }
+  .thesis { font-size: clamp(1.1rem, 2.6vw, 1.5rem); max-width: 30ch; margin-top: 1.4rem; color: var(--fg); }
+  .sub { color: var(--muted); max-width: 54ch; margin-top: 1rem; }
+  .device-chip {
+    display: inline-flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; margin-top: 1.9rem;
+    font-family: var(--mono); font-size: 0.8rem; color: var(--muted);
+  }
+  .device-chip b { color: var(--fg); font-weight: 600; }
+
+  /* ---- status strip ---- */
+  .status-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-top: 2.6rem; }
+  @media (max-width: 560px) { .status-strip { grid-template-columns: 1fr; } }
+  .st { background: var(--surface); padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .st .pill { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 0.45rem; width: max-content; }
+  .st .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .st .pill.ok { color: var(--good); }
+  .st .pill.work { color: var(--work); }
+  .st .pill.accent { color: var(--accent); }
+  .st .name { font-family: var(--display); font-weight: 700; font-size: 1.15rem; }
+  .st .note { font-size: 0.86rem; color: var(--muted); }
+
+  /* ---- sections ---- */
+  section { padding-block: 3.4rem; border-top: 1px solid var(--line); }
+  section h2 { font-size: clamp(1.5rem, 4vw, 2.1rem); font-weight: 800; }
+  .lead { color: var(--muted); max-width: 62ch; margin-top: 0.8rem; }
+
+  /* ---- signal path ---- */
+  .path { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0.6rem; margin-top: 2rem; }
+  .node { flex: 1 1 150px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0.95rem 1rem; display: flex; flex-direction: column; gap: 0.3rem; position: relative; }
+  .node .k { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .node .v { font-family: var(--display); font-weight: 700; font-size: 1rem; }
+  .node .d { font-size: 0.78rem; color: var(--muted); }
+  .node.end { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .arrow { align-self: center; color: var(--muted); flex: none; font-family: var(--mono); }
+  @media (max-width: 680px) { .arrow { transform: rotate(90deg); } .node { flex-basis: 100%; } }
+
+  /* ---- specs ---- */
+  .specs { margin-top: 1.8rem; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .specs .row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 1rem; padding: 0.8rem 1.1rem; border-top: 1px solid var(--line); font-size: 0.92rem; }
+  .specs .row:first-child { border-top: none; }
+  .specs .row dt { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 0; }
+  .specs .row dd { margin: 0; font-family: var(--mono); font-weight: 500; }
+  .specs .row dd b { color: var(--accent); font-weight: 600; }
+
+  /* ---- story ---- */
+  .story { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; margin-top: 1.9rem; }
+  @media (max-width: 720px) { .story { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 1.3rem 1.35rem; }
+  .card .n { font-family: var(--mono); color: var(--accent); font-size: 0.8rem; font-weight: 600; }
+  .card h3 { font-size: 1.12rem; font-weight: 700; margin-top: 0.5rem; }
+  .card p { color: var(--muted); font-size: 0.92rem; margin: 0.6rem 0 0; }
+  .card.flag { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 35%, var(--line)); }
+  .card.flag h3, .card.flag .n { color: var(--accent); }
+  .card.flag p { color: var(--fg); }
+
+  /* ---- install ---- */
+  .steps { counter-reset: s; margin-top: 1.7rem; display: flex; flex-direction: column; gap: 0.7rem; padding: 0; list-style: none; }
+  .steps li { counter-increment: s; position: relative; padding: 0.9rem 1.1rem 0.9rem 3.1rem; background: var(--surface); border: 1px solid var(--line); border-radius: 11px; font-size: 0.92rem; }
+  .steps li::before { content: counter(s, decimal-leading-zero); position: absolute; left: 1rem; top: 0.95rem; font-family: var(--mono); font-size: 0.78rem; color: var(--accent); font-weight: 600; }
+  .steps code { font-family: var(--mono); font-size: 0.85em; background: var(--surface-2); padding: 0.1em 0.4em; border-radius: 5px; word-break: break-word; }
+  .callout { margin-top: 1.4rem; font-size: 0.86rem; color: var(--muted); border-left: 2px solid var(--accent); padding: 0.3rem 0 0.3rem 1rem; }
+
+  footer { border-top: 1px solid var(--line); padding-block: 2.4rem 3.2rem; color: var(--muted); font-size: 0.84rem; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 0.6rem 1.5rem; align-items: baseline; }
+  footer .mono { color: var(--fg); }
+  footer .fine { flex-basis: 100%; color: var(--muted); font-size: 0.78rem; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .ping { transform-box: fill-box; transform-origin: center; animation: ping 3.4s ease-out infinite; }
+    @keyframes ping { 0% { opacity: 0.9; transform: scale(0.4); } 70%, 100% { opacity: 0; transform: scale(1.5); } }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap bar">
+    <span class="brand"><span class="dot"></span>GarnetTouch</span>
+    <nav>
+      <a class="navlink" href="#how">Signal path</a>
+      <a class="navlink" href="#specs">Specs</a>
+      <a class="navlink" href="#story">The wall</a>
+      <a class="navlink" href="#install">Install</a>
+      <button class="toggle" id="themeBtn" aria-label="Toggle light and dark theme" title="Toggle theme">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero" style="border-top:none">
+    <div class="hero-grid"></div>
+    <svg class="target" viewBox="0 0 100 100" fill="none" stroke="var(--accent)" stroke-width="1.2" aria-hidden="true">
+      <circle cx="50" cy="50" r="46" opacity="0.35"/>
+      <circle cx="50" cy="50" r="30" opacity="0.55"/>
+      <circle class="ping" cx="50" cy="50" r="30" opacity="0.5"/>
+      <circle cx="50" cy="50" r="4" fill="var(--accent)" stroke="none"/>
+      <path d="M50 4v20M50 76v20M4 50h20M76 50h20" opacity="0.6"/>
+    </svg>
+    <div class="wrap hero-inner">
+      <p class="eyebrow">Windows on ARM · Xiaomi "garnet"</p>
+      <h1>Garnet<span class="g">Touch</span></h1>
+      <p class="thesis">A from-scratch touchscreen driver for a phone that was never meant to run Windows.</p>
+      <p class="sub">Ten-finger multitouch in Windows 11 on the Redmi Note 13 Pro 5G, reverse-engineered from the phone's own hardware and the Goodix controller's protocol, with no vendor driver to start from.</p>
+      <div class="device-chip">
+        <span>SoC&nbsp; <b>Snapdragon 7s Gen 2 · SM7435</b></span>
+        <span>OS&nbsp; <b>Windows 11 ARM64</b></span>
+        <span>Controller&nbsp; <b>Goodix GT9916R</b></span>
+      </div>
+
+      <div class="status-strip">
+        <div class="st">
+          <span class="pill ok">Working</span>
+          <span class="name">Touchscreen</span>
+          <span class="note">10-finger multitouch, aligned and smooth. Loads and runs in Windows.</span>
+        </div>
+        <div class="st">
+          <span class="pill work">In testing</span>
+          <span class="name">Volume keys</span>
+          <span class="note">Built into the same driver over the PMIC. On-device test pending.</span>
+        </div>
+        <div class="st">
+          <span class="pill accent">In progress</span>
+          <span class="name">Wi-Fi</span>
+          <span class="note">Early research: booting the on-chip Wi-Fi co-processor firmware.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <p class="eyebrow">How a touch reaches Windows</p>
+      <h2>The signal path</h2>
+      <p class="lead">A finger moves charge on the panel. Six hops later, Windows sees a HID contact. Every stage had to be brought up by hand, because nothing in a stock Windows image knows this hardware exists.</p>
+      <div class="path">
+        <div class="node"><span class="k">Sensor</span><span class="v">GT9916R</span><span class="d">Goodix "Berlin" touch controller</span></div>
+        <span class="arrow">→</span>
+        <div class="node"><span class="k">Bus</span><span class="v">SPI · QUP1 SE3</span><span class="d">Serial engine in GSI mode</span></div>
+        <span class="arrow">→</span>
+        <div class="node"><span class="k">Transfer</span><span class="v">GPI DMA</span><span class="d">Command rings on GPII 0</span></div>
+        <span class="arrow">→</span>
+        <div class="node"><span class="k">Gatekeeper</span><span class="v">APPS SMMU</span><span class="d">Streams 0x416 / 0x403 let through</span></div>
+        <span class="arrow">→</span>
+        <div class="node end"><span class="k">Windows</span><span class="v">HID via VHF</span><span class="d">Up to 10 contacts, ~100&nbsp;Hz</span></div>
+      </div>
+      <p class="callout">The firmware (a small UEFI driver) powers the chip and opens the SMMU gates before Windows boots; the kernel driver owns the DMA engine and speaks the Goodix protocol once Windows is up.</p>
+    </div>
+  </section>
+
+  <section id="specs">
+    <div class="wrap">
+      <p class="eyebrow">Readout</p>
+      <h2>What it does</h2>
+      <dl class="specs">
+        <div class="row"><dt>Contacts</dt><dd><b>10</b> simultaneous fingers</dd></div>
+        <div class="row"><dt>Panel</dt><dd>1220 × 2712 px</dd></div>
+        <div class="row"><dt>Coordinate scale</dt><dd>16× super-resolution (raw 19519 × 43391)</dd></div>
+        <div class="row"><dt>Poll rate</dt><dd>~100 Hz</dd></div>
+        <div class="row"><dt>Protocol</dt><dd>Goodix Berlin over SPI</dd></div>
+        <div class="row"><dt>Transport</dt><dd>QUP1 SE3 · GPI DMA (GPII 0)</dd></div>
+        <div class="row"><dt>OS interface</dt><dd>HID through the Virtual HID Framework</dd></div>
+        <div class="row"><dt>Driver model</dt><dd>WDM kernel-mode · ARM64</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section id="story">
+    <div class="wrap">
+      <p class="eyebrow">The part that nearly stopped it</p>
+      <h2>The wall was the compiler, not the code</h2>
+      <p class="lead">The driver was written and correct. It installed cleanly. And Windows refused to load it — the same cryptic failure every time, with no signature complaint and no log.</p>
+      <div class="story">
+        <div class="card">
+          <span class="n">The symptom</span>
+          <h3>Rejected before it ran</h3>
+          <p>Every build failed to load with one status code and silence. Not signing, not Memory Integrity, not a missing import — all ruled out one by one. Even a ten-line empty driver was refused.</p>
+        </div>
+        <div class="card">
+          <span class="n">The cause</span>
+          <h3>An image Windows wouldn't accept</h3>
+          <p>The open-source linker produced an ARM64 kernel image missing the exact Control Flow Guard metadata and thunk section the Windows ARM64 loader requires. Structurally valid everywhere a tool could check, yet the kernel wouldn't take it.</p>
+        </div>
+        <div class="card flag">
+          <span class="n">The fix</span>
+          <h3>Build with Microsoft's own toolchain</h3>
+          <p>Rebuilt with the Enterprise WDK. The real compiler emits the metadata the loader expects. The driver loaded on the first try, and touch worked. The code never changed.</p>
+        </div>
+        <div class="card">
+          <span class="n">The lesson</span>
+          <h3>Trust the evidence, not the hunch</h3>
+          <p>The early guesses (signing, security policy) were wrong. Reading the actual loader behavior and comparing byte-for-byte against a working Microsoft driver is what found it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <p class="eyebrow">For the curious</p>
+      <h2>How it's installed</h2>
+      <p class="lead">This is a personal build on a bootloader-unlocked phone, not a public release. The driver is placed into the Windows image offline, from a PC, with the phone in recovery.</p>
+      <ol class="steps">
+        <li>Boot the phone into recovery and expose its storage to the PC as a USB drive.</li>
+        <li>Add the driver to the offline Windows image with <code>DISM /Add-Driver /ForceUnsigned</code>, test-signed with a self-made certificate.</li>
+        <li>Make sure test signing is enabled in the Windows boot configuration.</li>
+        <li>Start Windows with the custom UEFI: <code>fastboot boot garnet-uefi.img</code>.</li>
+        <li>About 20 seconds after the desktop appears, the touchscreen comes alive.</li>
+      </ol>
+      <p class="callout">The UEFI brings up touch power, clocks and the SMMU before handing off; the signed kernel driver does the rest once Windows is running.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="mono">GarnetTouch</span>
+    <span>A hobby port. Windows 11 ARM64 on a Redmi Note 13 Pro 5G.</span>
+    <span>Built on the Mu-Silicium UEFI port · hardware mapped from the phone's own device tree.</span>
+    <span class="fine">Not affiliated with Xiaomi, Qualcomm, Goodix or Microsoft. Device and product names are used only to describe the hardware.</span>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('themeBtn');
+    function saved() { try { return localStorage.getItem('gt-theme'); } catch (e) { return null; } }
+    function remember(v) { try { localStorage.setItem('gt-theme', v); } catch (e) {} }
+    var s = saved();
+    if (s === 'dark' || s === 'light') root.setAttribute('data-theme', s);
+    if (btn) btn.addEventListener('click', function () {
+      var cur = root.getAttribute('data-theme');
+      if (!cur) {
+        cur = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      }
+      var next = cur === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      remember(next);
+    });
+  })();
+</script>
+
+</body>
+</html>
