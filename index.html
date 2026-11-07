@@ -125,8 +125,9 @@
   .device-chip b { color: var(--fg); font-weight: 600; }
 
   /* ---- status strip ---- */
-  .status-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-top: 2.6rem; }
-  @media (max-width: 560px) { .status-strip { grid-template-columns: 1fr; } }
+  .status-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-top: 2.6rem; }
+  @media (max-width: 860px) { .status-strip { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .status-strip { grid-template-columns: 1fr; } }
   .st { background: var(--surface); padding: 1.1rem 1.2rem; display: flex; flex-direction: column; gap: 0.5rem; }
   .st .pill { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 0.45rem; width: max-content; }
   .st .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
@@ -232,14 +233,19 @@
           <span class="note">10-finger multitouch, aligned and smooth. Loads and runs in Windows.</span>
         </div>
         <div class="st">
-          <span class="pill work">In testing</span>
-          <span class="name">Volume keys</span>
-          <span class="note">Built into the same driver over the PMIC. On-device test pending.</span>
+          <span class="pill ok">Working</span>
+          <span class="name">Buttons</span>
+          <span class="note">Volume up and down fire HID volume events; power is detected. Read straight off the PMIC over SPMI.</span>
         </div>
         <div class="st">
           <span class="pill accent">In progress</span>
+          <span class="name">Sound</span>
+          <span class="note">The next target &mdash; the audio subsystem that also makes the volume keys audible.</span>
+        </div>
+        <div class="st">
+          <span class="pill work">Planned</span>
           <span class="name">Wi-Fi</span>
-          <span class="note">Early research: booting the on-chip Wi-Fi co-processor firmware.</span>
+          <span class="note">Booting the on-chip Wi-Fi co-processor (WPSS) firmware.</span>
         </div>
       </div>
     </div>
